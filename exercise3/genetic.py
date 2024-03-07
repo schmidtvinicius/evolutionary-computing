@@ -97,35 +97,42 @@ word_size = 15
 mutation_rate = 1/word_size
 k = 2
 
-target = generate_target_string(length=word_size)
-population = np.array([generate_target_string(length=word_size) for _ in range(population_size)])
-
 for _ in range(10):
-    number_of_generations = 0
-    while True:
-        number_of_generations += 1
-        # print(number_of_generations)
-        
-        parent_0, first_idx = tournament_selection(population, target, k)
-        parent_1, second_idx = tournament_selection(population, target, k)
-        while first_idx == second_idx:
-            parent_1, second_idx = tournament_selection(population, target, k)
-        
-        new_children_0, new_children_1 = crossover(parent_0, parent_1)
-        
-        new_children_0 = do_mutation(new_children_0, mutation_rate)
-        new_children_1 = do_mutation(new_children_1, mutation_rate)
-        
-        population = remove_parents(population, first_idx, second_idx)
-        population = add_children(population, [new_children_0, new_children_1])
 
-        if number_of_generations % 100 == 0:
-            print(f'generation {number_of_generations}')
-            print(f'best candidate: {population[np.argmax([calculate_fitness(target, candidate) for candidate in population])]}')
-            print(f'fitness: {np.max([calculate_fitness(target, candidate) for candidate in population])}')
-            print(f'average fitness: {np.mean([calculate_fitness(target, candidate) for candidate in population])}')
-            print(f'population size: {len(population)}')
-        
-        if new_children_0 == target or new_children_1 == target:
-            print(f'found target {target} in generation {number_of_generations}')
-            break
+    target = generate_target_string(length=word_size)
+    population = np.array([generate_target_string(length=word_size) for _ in range(population_size)])
+    number_of_generations = 0
+    found_target = False
+
+    while not found_target:
+        number_of_generations += 1
+        new_population = np.array([])
+        for i in np.arange(population_size/2):
+            parent_0, first_idx = tournament_selection(population, target, k)
+            parent_1, second_idx = tournament_selection(population, target, k)
+            
+            while first_idx == second_idx:
+                parent_1, second_idx = tournament_selection(population, target, k)
+            
+            new_children_0, new_children_1 = crossover(parent_0, parent_1)
+            
+            new_children_0 = do_mutation(new_children_0, mutation_rate)
+            new_children_1 = do_mutation(new_children_1, mutation_rate)
+            
+            # population = remove_parents(population, first_idx, second_idx)
+            # population = add_children(population, [new_children_0, new_children_1])
+
+            # if number_of_generations % 100 == 0:
+            #     print(f'generation {number_of_generations}')
+            #     print(f'best candidate: {population[np.argmax([calculate_fitness(target, candidate) for candidate in population])]}')
+            #     print(f'fitness: {np.max([calculate_fitness(target, candidate) for candidate in population])}')
+            #     print(f'average fitness: {np.mean([calculate_fitness(target, candidate) for candidate in population])}')
+            #     print(f'population size: {len(population)}')
+            
+            if new_children_0 == target or new_children_1 == target:
+                print(f'found target {target} in generation {number_of_generations}')
+                found_target = True
+                break
+
+            new_population = np.append(new_population, [new_children_0, new_children_1])
+        population = new_population
