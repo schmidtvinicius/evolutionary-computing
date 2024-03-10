@@ -6,13 +6,13 @@ from scipy.spatial import distance
 def read_tsp(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
-         # Read each line from the file and convert each line to a list of floating-point numbers
+        # Read each line from the file and convert each line to a list of floating-point numbers
         coordinates = [[float(val) for val in line.strip().split()] for line in lines]
     return np.array(coordinates)
 
 # Define distance matrix
 def calculate_distance_matrix(coordinates):
-     # Calculate the pairwise distances between all coordinates using Euclidean distance
+    # Calculate the pairwise distances between all coordinates using Euclidean distance
     return distance.cdist(coordinates, coordinates, 'euclidean')
 
 # Define random tour generation
@@ -25,13 +25,13 @@ def simple_ea(num_cities, population_size, generations, dist_matrix):
     # Generate an initial population of random tours
     population = [generate_random_tour(num_cities) for _ in range(population_size)]
     
-     # Iterate through a number of generations
+    # Iterate through a number of generations
     for _ in range(generations):
         # Sort the population based on the length of each tour
         population.sort(key=lambda x: tour_length(x, dist_matrix))
         new_population = []
         
-         # Generate a new population through crossover and mutation
+        # Generate a new population through crossover and mutation
         for _ in range(population_size):
             parent1, parent2 = random.sample(population[:population_size // 2], 2)
             child = crossover(parent1, parent2)
@@ -55,7 +55,7 @@ def memetic_algorithm(num_cities, population_size, generations, dist_matrix):
         population.sort(key=lambda x: tour_length(x, dist_matrix))
         new_population = []
         
-         # Apply 2-opt local search to each tour in the population
+        # Apply 2-opt local search to each tour in the population
         for tour in population:
             child = two_opt(tour, dist_matrix)
             new_population.append(child)
@@ -103,7 +103,6 @@ def mutate(child, mutation_probability):
 # 2-opt local search
 def two_opt(tour, dist_matrix):
     size = len(tour)
-    best_tour = tour
     improved = True
 
     # Continue until no improvement is possible
@@ -117,12 +116,11 @@ def two_opt(tour, dist_matrix):
                 new_tour = tour[:]
                 new_tour[i:j] = tour[j - 1:i - 1:-1]
                 # Check if new tour is better than current best tour
-                if tour_length(new_tour, dist_matrix) < tour_length(best_tour, dist_matrix):
-                    best_tour = new_tour
+                if tour_length(new_tour, dist_matrix) < tour_length(tour, dist_matrix):
+                    tour = new_tour
                     improved = True
-        tour = best_tour
 
-    return best_tour
+    return tour
 
 # Main function to compare EA and MA
 def compare_algorithms(data, population_size, generations):
@@ -140,6 +138,8 @@ def compare_algorithms(data, population_size, generations):
         # Run both algorithms and remember tour lengths
         ea_tour = simple_ea(num_cities, population_size, generations, dist_matrix)
         ma_tour = memetic_algorithm(num_cities, population_size, generations, dist_matrix)
+        print("----------------------------- ea_tour: ", ea_tour, "----------------------------")
+        print("----------------------------- ma_tour: ", ma_tour, "----------------------------")
         print("----------------------------- i: ", i, "----------------------------")
         
         ea_lengths.append(tour_length(ea_tour, dist_matrix))
