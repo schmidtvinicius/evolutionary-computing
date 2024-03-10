@@ -1,5 +1,8 @@
 import string as string_module
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 
 def generate_target_string(alphabet=string_module.ascii_letters, length=15) -> str:
@@ -94,11 +97,22 @@ def calcualte_population_diversity(population: np.ndarray) -> float:
     return diversity/divisor
 
 
-def run_simulation(calculate_diversity=False):
-    population_size = 2000
-    word_size = 15
-    mutation_rate = 1/word_size
-    k = 2
+# Visualize the distributions of tfinish for each µ (I would suggest a so-called beeswarm plot).
+def visualize_distributions(mu, n_gens):
+    data = {'mu': mu, 'n_gens': n_gens}
+    df = pd.DataFrame(data)
+
+    sns.swarmplot(x='mu', y='n_gens', data=df)
+    plt.show()
+
+
+def run_simulation(
+        calculate_diversity=False,
+        population_size = 2000,
+        word_size = 15,
+        mutation_rate = 1/15,
+        k = 2
+    ):
 
     for _ in range(11):
 
@@ -106,6 +120,8 @@ def run_simulation(calculate_diversity=False):
         population = np.array([generate_target_string(length=word_size) for _ in range(population_size)])
         number_of_generations = 0
         found_target = False
+
+        final_gen_num = []
 
         while not found_target:
             if calculate_diversity and number_of_generations % 10 == 0:
@@ -129,10 +145,24 @@ def run_simulation(calculate_diversity=False):
 
                 new_population = np.append(new_population, [new_children_0, new_children_1])
             population = new_population
+            if number_of_generations > 100:
+                print(f'could not find target {target} in 100 generations')
+                break
 
+
+        final_gen_num.append(number_of_generations)
+
+    return np.mean(final_gen_num)
 
 def main():
-    run_simulation(True)
+    mu = [0, 1/15, 3/15]
+    n_gens = []
+    for i in mu:
+        print(f"experiment for mu = {i} ")
+        n_gen = run_simulation(True, mutation_rate=i)
+        n_gens.append(n_gen)
+    visualize_distributions(mu, n_gens)
+
 
 
 if __name__ == '__main__':
