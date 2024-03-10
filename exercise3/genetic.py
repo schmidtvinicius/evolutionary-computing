@@ -1,7 +1,5 @@
-import random
 import string as string_module
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def generate_target_string(alphabet=string_module.ascii_letters, length=15) -> str:
@@ -36,8 +34,6 @@ def calculate_fitness(target: str, candidate: str) -> float:
     if len(target) != len(candidate):
         raise RuntimeError('strings should be the same length')
 
-    # print(f'comparing target {target} to candidate {candidate}')
-
     fitness = 0
     for i in range(len(target)):
         if target[i] == candidate[i]:
@@ -55,9 +51,9 @@ def tournament_selection(population: np.ndarray, target: str, k: int) -> list[st
     selection_fitness = [calculate_fitness(target, selection) for selection in selections]
     
     first_best = np.argmax(selection_fitness)
-    first_idx = indexes[first_best]
 
-    return selections[first_best], first_idx
+    return selections[first_best]
+
 
 def crossover(parent_0: str, parent_1: str) -> list:
     """
@@ -79,60 +75,65 @@ def do_mutation(string: str, mu: float) -> str:
     return string
 
 
-def remove_parents(population: list, first_idx: int, second_idx: int) -> list:
-    new_pop = []
-    for idx, word in enumerate(population):
-        if idx != first_idx and idx != second_idx:
-            new_pop.append(word)
-    return new_pop
+def calculate_hamming_distance(string1, string2):
+    if len(string1) != len(string2):
+        raise RuntimeError('strings should be the same length')
+    
+    return sum(c1 != c2 for c1, c2 in zip(string1, string2))
 
 
+def calcualte_population_diversity(population: np.ndarray) -> float:
+    diversity = 0
+    divisor = 0
 
-def add_children(population: np.ndarray, children: np.ndarray) -> np.ndarray:
-    return np.append(population, children)
+    for i in np.arange(len(population)):
+        for j in np.arange(i, len(population)):
+            divisor += 1
+            diversity += calculate_hamming_distance(population[i], population[j])
+
+    return diversity/divisor
 
 
-population_size = 200
-word_size = 15
-mutation_rate = 1/word_size
-k = 2
+def run_simulation(calculate_diversity=False):
+    population_size = 2000
+    word_size = 15
+    mutation_rate = 1/word_size
+    k = 2
 
-for _ in range(10):
+    for _ in range(11):
 
-    target = generate_target_string(length=word_size)
-    population = np.array([generate_target_string(length=word_size) for _ in range(population_size)])
-    number_of_generations = 0
-    found_target = False
+        target = generate_target_string(length=word_size)
+        population = np.array([generate_target_string(length=word_size) for _ in range(population_size)])
+        number_of_generations = 0
+        found_target = False
 
-    while not found_target:
-        number_of_generations += 1
-        new_population = np.array([])
-        for i in np.arange(population_size/2):
-            parent_0, first_idx = tournament_selection(population, target, k)
-            parent_1, second_idx = tournament_selection(population, target, k)
-            
-            while first_idx == second_idx:
-                parent_1, second_idx = tournament_selection(population, target, k)
-            
-            new_children_0, new_children_1 = crossover(parent_0, parent_1)
-            
-            new_children_0 = do_mutation(new_children_0, mutation_rate)
-            new_children_1 = do_mutation(new_children_1, mutation_rate)
-            
-            # population = remove_parents(population, first_idx, second_idx)
-            # population = add_children(population, [new_children_0, new_children_1])
+        while not found_target:
+            if calculate_diversity and number_of_generations % 10 == 0:
+                print(f'mean Hamming distance at generation {number_of_generations} is {calcualte_population_diversity(population)}')
 
-            # if number_of_generations % 100 == 0:
-            #     print(f'generation {number_of_generations}')
-            #     print(f'best candidate: {population[np.argmax([calculate_fitness(target, candidate) for candidate in population])]}')
-            #     print(f'fitness: {np.max([calculate_fitness(target, candidate) for candidate in population])}')
-            #     print(f'average fitness: {np.mean([calculate_fitness(target, candidate) for candidate in population])}')
-            #     print(f'population size: {len(population)}')
-            
-            if new_children_0 == target or new_children_1 == target:
-                print(f'found target {target} in generation {number_of_generations}')
-                found_target = True
-                break
+            number_of_generations += 1
+            new_population = np.array([])
+            for _ in np.arange(population_size/2):
+                parent_0 = tournament_selection(population, target, k)
+                parent_1 = tournament_selection(population, target, k)
+                
+                new_children_0, new_children_1 = crossover(parent_0, parent_1)
+                
+                new_children_0 = do_mutation(new_children_0, mutation_rate)
+                new_children_1 = do_mutation(new_children_1, mutation_rate)
+                
+                if new_children_0 == target or new_children_1 == target:
+                    print(f'found target {target} in generation {number_of_generations}')
+                    found_target = True
+                    break
 
-            new_population = np.append(new_population, [new_children_0, new_children_1])
-        population = new_population
+                new_population = np.append(new_population, [new_children_0, new_children_1])
+            population = new_population
+
+
+def main():
+    run_simulation(True)
+
+
+if __name__ == '__main__':
+    main()
