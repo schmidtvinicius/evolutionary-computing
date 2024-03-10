@@ -97,31 +97,39 @@ def calcualte_population_diversity(population: np.ndarray) -> float:
     return diversity/divisor
 
 
-# Visualize the distributions of tfinish for each µ (I would suggest a so-called beeswarm plot).
-def visualize_distributions(mu, n_gens):
-    data = {'mu': mu, 'n_gens': n_gens}
-    df = pd.DataFrame(data)
+def visualize_distributions(mu_values, data):
+    x = []
+    for mu in mu_values:
+        x += [mu]*10
+    y = []
+    for i in data:
+        for j in i:
+            y.append(j)
 
-    sns.swarmplot(x='mu', y='n_gens', data=df)
+    sns.set(style="whitegrid")
+    plt.figure(figsize=(10, 6))
+    sns.swarmplot(x=x, y=y, color="blue", size=8)
+    plt.xlabel("Mutation rate (µ)")
+    plt.ylabel("Number of generations")
+    plt.title("Number of generations for different mutation rates")
     plt.show()
 
 
 def run_simulation(
         calculate_diversity=False,
-        population_size = 2000,
+        population_size = 200,
         word_size = 15,
         mutation_rate = 1/15,
         k = 2
     ):
+    final_gen_num = []
 
-    for _ in range(11):
+    for _ in range(10):
 
         target = generate_target_string(length=word_size)
         population = np.array([generate_target_string(length=word_size) for _ in range(population_size)])
         number_of_generations = 0
         found_target = False
-
-        final_gen_num = []
 
         while not found_target:
             if calculate_diversity and number_of_generations % 10 == 0:
@@ -149,10 +157,9 @@ def run_simulation(
                 print(f'could not find target {target} in 100 generations')
                 break
 
-
         final_gen_num.append(number_of_generations)
 
-    return np.mean(final_gen_num)
+    return final_gen_num
 
 def main():
     mu = [0, 1/15, 3/15]
