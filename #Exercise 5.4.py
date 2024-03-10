@@ -61,7 +61,6 @@ def memetic_algorithm(num_cities, population_size, generations, dist_matrix):
             new_population.append(child)
         
         population = new_population
-        print("GENERETION MA: ", gen)
     
     # Return best tour found in final population
     return min(population, key=lambda x: tour_length(x, dist_matrix))
@@ -138,9 +137,6 @@ def compare_algorithms(data, population_size, generations):
         # Run both algorithms and remember tour lengths
         ea_tour = simple_ea(num_cities, population_size, generations, dist_matrix)
         ma_tour = memetic_algorithm(num_cities, population_size, generations, dist_matrix)
-        print("----------------------------- ea_tour: ", ea_tour, "----------------------------")
-        print("----------------------------- ma_tour: ", ma_tour, "----------------------------")
-        print("----------------------------- i: ", i, "----------------------------")
         
         ea_lengths.append(tour_length(ea_tour, dist_matrix))
         ma_lengths.append(tour_length(ma_tour, dist_matrix))
