@@ -26,7 +26,7 @@ def simple_ea(num_cities, population_size, generations, dist_matrix):
     population = [generate_random_tour(num_cities) for _ in range(population_size)]
     
      # Iterate through a number of generations
-    for gen in range(generations):
+    for _ in range(generations):
         # Sort the population based on the length of each tour
         population.sort(key=lambda x: tour_length(x, dist_matrix))
         new_population = []
@@ -35,11 +35,11 @@ def simple_ea(num_cities, population_size, generations, dist_matrix):
         for _ in range(population_size):
             parent1, parent2 = random.sample(population[:population_size // 2], 2)
             child = crossover(parent1, parent2)
-            mutate(child)
+            mutation_probability = 0.001
+            mutate(child, mutation_probability)
             new_population.append(child)
         
         population = new_population
-        print("GENERATION: ", gen)
     
     # Return best tour found in final population
     return min(population, key=lambda x: tour_length(x, dist_matrix))
@@ -92,10 +92,13 @@ def crossover(parent1, parent2):
     return np.array(child)
 
 # Mutation operator (Swap the elements at the selected indices)
-def mutate(tour):
-    size = len(tour)
-    a, b = random.sample(range(size), 2)
-    tour[a], tour[b] = tour[b], tour[a]
+def mutate(child, mutation_probability):
+    size = len(child)
+    for i in range(size):
+        if random.random() < mutation_probability:
+            # Select another random position to swap with
+            swap_index = random.randint(0, size - 1)
+            child[i], child[swap_index] = child[swap_index], child[i]
 
 # 2-opt local search
 def two_opt(tour, dist_matrix):
@@ -133,10 +136,11 @@ def compare_algorithms(data, population_size, generations):
     repetition = 10
     
     # Repeat experiment
-    for _ in range(repetition):
+    for i in range(repetition):
         # Run both algorithms and remember tour lengths
         ea_tour = simple_ea(num_cities, population_size, generations, dist_matrix)
         ma_tour = memetic_algorithm(num_cities, population_size, generations, dist_matrix)
+        print("----------------------------- i: ", i, "----------------------------")
         
         ea_lengths.append(tour_length(ea_tour, dist_matrix))
         ma_lengths.append(tour_length(ma_tour, dist_matrix))
